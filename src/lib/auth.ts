@@ -3,6 +3,7 @@ import Google from "next-auth/providers/google";
 import { createServerClient } from "@/lib/supabase/server";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
