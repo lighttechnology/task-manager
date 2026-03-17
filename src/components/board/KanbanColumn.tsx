@@ -17,8 +17,8 @@ interface KanbanColumnProps {
 
 export function KanbanColumn({ column, tasks, columns, onAddTask, onEditTask, onMoveColumn }: KanbanColumnProps) {
   return (
-    <div className="flex flex-col w-[280px] shrink-0 bg-gray-50 dark:bg-gray-900 rounded-xl">
-      <div className="flex items-center justify-between p-3">
+    <div className="flex flex-col w-[250px] shrink-0 bg-gray-50 dark:bg-gray-900 rounded-xl">
+      <div className="flex items-center justify-between px-2.5 py-2">
         <div className="flex items-center gap-2">
           <div
             className="w-3 h-3 rounded-full"
@@ -39,7 +39,7 @@ export function KanbanColumn({ column, tasks, columns, onAddTask, onEditTask, on
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 p-2 space-y-2 min-h-[100px] transition-colors rounded-b-xl
+            className={`flex-1 p-1.5 space-y-1.5 min-h-[100px] transition-colors rounded-b-xl
               ${snapshot.isDraggingOver ? "bg-indigo-50 dark:bg-indigo-950/30" : ""}`}
           >
             {tasks.map((task, index) => (
