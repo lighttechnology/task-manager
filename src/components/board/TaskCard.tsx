@@ -18,7 +18,7 @@ function MiniAvatar({ name, avatarUrl }: { name?: string | null; avatarUrl?: str
   const initial = name?.charAt(0) ?? "?";
   return (
     <div
-      className="relative h-6 w-6 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center overflow-hidden ring-2 ring-white dark:ring-gray-900"
+      className="relative h-5 w-5 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center overflow-hidden ring-1.5 ring-white dark:ring-gray-900"
       title={name ?? undefined}
     >
       {avatarUrl ? (
@@ -29,7 +29,7 @@ function MiniAvatar({ name, avatarUrl }: { name?: string | null; avatarUrl?: str
           referrerPolicy="no-referrer"
         />
       ) : (
-        <span className="text-[9px] font-medium text-indigo-700 dark:text-indigo-300">
+        <span className="text-[8px] font-medium text-indigo-700 dark:text-indigo-300">
           {initial}
         </span>
       )}
@@ -65,13 +65,13 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`rounded-lg border bg-white dark:bg-gray-900 p-3 cursor-pointer transition-shadow
+          className={`rounded-lg border bg-white dark:bg-gray-900 px-2.5 py-2 cursor-pointer transition-shadow
             ${snapshot.isDragging ? "shadow-xl scale-[1.02]" : "hover:shadow-md"}`}
           onClick={onClick}
         >
-          {/* カード上部: タイトル + 右上アバター */}
-          <div className="flex items-start justify-between gap-2">
-            <h4 className="font-semibold text-sm leading-snug flex-1 min-w-0">{task.title}</h4>
+          {/* タイトル + 右上アバター */}
+          <div className="flex items-center justify-between gap-1">
+            <h4 className="font-semibold text-sm leading-tight flex-1 min-w-0 truncate">{task.title}</h4>
             {assignees.length > 0 && (
               <div className="flex shrink-0 -space-x-1.5">
                 {assignees.slice(0, 3).map((a) => (
@@ -82,8 +82,8 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
                   />
                 ))}
                 {assignees.length > 3 && (
-                  <div className="relative h-6 w-6 shrink-0 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
-                    <span className="text-[9px] font-medium text-gray-600 dark:text-gray-300">
+                  <div className="relative h-5 w-5 shrink-0 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
+                    <span className="text-[8px] font-medium text-gray-600 dark:text-gray-300">
                       +{assignees.length - 3}
                     </span>
                   </div>
@@ -92,52 +92,48 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
             )}
           </div>
 
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <Badge variant="secondary" className={priority.className}>
+          {/* 優先度 + 日付 を同じ行に */}
+          <div className="flex items-center gap-1.5 mt-1">
+            <Badge variant="secondary" className={`${priority.className} text-[10px] px-1.5 py-0`}>
               {priority.label}
             </Badge>
 
+            {task.due_date && (
+              <span
+                className={`flex items-center gap-0.5 text-[11px] ${
+                  isOverdue ? "text-red-500 font-medium" : "text-muted-foreground"
+                }`}
+              >
+                <Calendar className="h-3 w-3" />
+                {format(new Date(task.due_date), "M/d (E)", { locale: ja })}
+              </span>
+            )}
+
             {task.tags && task.tags.length > 0 && (
               <>
-                {task.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag.id} variant="outline" className="text-xs">
+                {task.tags.slice(0, 2).map((tag) => (
+                  <Badge key={tag.id} variant="outline" className="text-[10px] px-1 py-0">
                     {tag.name}
                   </Badge>
                 ))}
-                {task.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{task.tags.length - 3}
-                  </Badge>
-                )}
               </>
             )}
           </div>
 
           {/* レビュアー表示 */}
           {reviewer && (
-            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 mt-1 text-[11px] text-muted-foreground">
               <Eye className="h-3 w-3" />
-              <span>レビュー: {reviewer.name ?? reviewer.email}</span>
-            </div>
-          )}
-
-          {task.due_date && (
-            <div
-              className={`flex items-center gap-1 mt-2 text-xs ${
-                isOverdue ? "text-red-500 font-medium" : "text-muted-foreground"
-              }`}
-            >
-              <Calendar className="h-3 w-3" />
-              {format(new Date(task.due_date), "M/d (E)", { locale: ja })}
+              <span>{reviewer.name ?? reviewer.email}</span>
             </div>
           )}
 
           {/* 列移動ボタン */}
-          <div className="flex items-center justify-between mt-2 pt-2 border-t">
+          <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t">
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6"
+              className="h-5 w-5"
               disabled={!canMoveLeft}
               onClick={(e) => {
                 e.stopPropagation();
@@ -145,7 +141,7 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
               }}
               title={canMoveLeft ? `← ${columns[currentColIndex - 1].title}` : undefined}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
             <span className="text-[10px] text-muted-foreground">
               {columns[currentColIndex]?.title}
@@ -153,7 +149,7 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6"
+              className="h-5 w-5"
               disabled={!canMoveRight}
               onClick={(e) => {
                 e.stopPropagation();
@@ -161,7 +157,7 @@ export function TaskCard({ task, index, onClick, columns, onMoveColumn }: TaskCa
               }}
               title={canMoveRight ? `${columns[currentColIndex + 1].title} →` : undefined}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

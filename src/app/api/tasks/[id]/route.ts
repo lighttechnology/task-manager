@@ -138,18 +138,39 @@ export async function PUT(
     task.assignees = [];
   }
 
-  // Calendar sync
-  if (sync_calendar && task.due_date && session.access_token) {
-    try {
-      const eventId = await syncTaskToCalendar(task, session.access_token);
-      if (eventId && eventId !== task.google_calendar_event_id) {
-        await supabase
-          .from("tasks")
-          .update({ google_calendar_event_id: eventId })
-          .eq("id", id);
+  // Calendar sync — 担当者のカレンダーに同期
+  if (sync_calendar && task.due_date) {
+    const taskAssigneeIds = (task.assignees ?? []).map(
+      (a: { user_id: string }) => a.user_id
+    );
+    const targetUserIds =
+      taskAssigneeIds.length > 0 ? taskAssigneeIds : [session.user.id];
+
+    for (const userId of targetUserIds) {
+      try {
+        let token: string | undefined;
+        if (userId === session.user.id) {
+          token = session.access_token;
+        } else {
+          const { data: u } = await supabase
+            .from("users")
+            .select("google_access_token")
+            .eq("id", userId)
+            .single();
+          token = u?.google_access_token ?? undefined;
+        }
+        if (!token) continue;
+
+        const eventId = await syncTaskToCalendar(task, token);
+        if (eventId && eventId !== task.google_calendar_event_id) {
+          await supabase
+            .from("tasks")
+            .update({ google_calendar_event_id: eventId })
+            .eq("id", id);
+        }
+      } catch (calErr) {
+        console.error(`Calendar sync error for user ${userId}:`, calErr);
       }
-    } catch (calErr) {
-      console.error("Calendar sync error:", calErr);
     }
   }
 
