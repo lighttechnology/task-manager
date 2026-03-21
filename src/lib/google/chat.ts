@@ -10,23 +10,26 @@ interface NotifyParams {
   title: string;
   creatorName?: string;
   assigneeNames?: string;
-  completedByName?: string;
+  operatorName?: string;
   oldColumn?: string;
   newColumn?: string;
 }
 
 function buildMessage(params: NotifyParams): string {
+  const assignee = params.assigneeNames ?? "不明";
+  const operator = params.operatorName ?? "不明";
+
   switch (params.type) {
     case "task_created":
-      return `${params.creatorName ?? "不明"}が${params.assigneeNames ?? "未アサイン"}に${params.title}のタスクを追加しました。`;
+      return `📋 ${params.creatorName ?? "不明"}が${assignee}に${params.title}のタスクを追加しました。`;
     case "task_completed":
-      return `${params.assigneeNames ?? "不明"}の${params.title}のタスクを完了しました。`;
+      return `✅ ${assignee}の${params.title}のタスクを${operator}が完了にしました。`;
     case "status_changed":
-      return `${params.assigneeNames ?? "不明"}の${params.title}のタスクが${params.newColumn}に移行されました`;
+      return `🔄 ${assignee}の${params.title}のタスクが${operator}によって${params.newColumn}に移行されました。`;
     case "task_deleted":
-      return `🗑️ ${params.assigneeNames ?? "不明"}の${params.title}のタスクが削除されました`;
+      return `🗑️ ${assignee}の${params.title}のタスクが${operator}によって削除されました。`;
     case "task_due_today":
-      return `${params.assigneeNames ?? "不明"}の${params.title}のタスクが本日までになります。`;
+      return `⏰ ${assignee}の${params.title}のタスクが本日までになります。`;
   }
 }
 

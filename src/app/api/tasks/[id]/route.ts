@@ -203,17 +203,21 @@ export async function PUT(
       }
     }
 
+    const operatorName = session.user.name ?? session.user.email ?? "不明";
+
     if (newColTitle === "完了") {
       notifyChat({
         type: "task_completed",
         title: task.title,
         assigneeNames: assigneeNameList,
+        operatorName,
       }).catch(() => {});
     } else {
       notifyChat({
         type: "status_changed",
         title: task.title,
         assigneeNames: assigneeNameList,
+        operatorName,
         newColumn: newColTitle,
       }).catch(() => {});
     }
@@ -253,7 +257,8 @@ export async function DELETE(
   const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  notifyChat({ type: "task_deleted", title: task.title, assigneeNames: deleteAssigneeNames }).catch(() => {});
+  const deleteOperatorName = session.user.name ?? session.user.email ?? "不明";
+  notifyChat({ type: "task_deleted", title: task.title, assigneeNames: deleteAssigneeNames, operatorName: deleteOperatorName }).catch(() => {});
 
   return NextResponse.json({ success: true });
 }
