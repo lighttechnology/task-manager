@@ -204,11 +204,11 @@ export async function PUT(
     }
 
     if (newColTitle === "完了") {
+      const completedByName = session.user.name ?? session.user.email ?? "不明";
       notifyChat({
         type: "task_completed",
         title: task.title,
-        creatorName,
-        assigneeNames: assigneeNameList,
+        completedByName,
       }).catch(() => {});
     } else {
       notifyChat({

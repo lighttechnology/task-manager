@@ -187,33 +187,34 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Chat notification — 依頼者・担当者名を含める
+  // Chat notification — 自分→自分のタスクは通知しない
   {
-    const creatorName = session.user.name ?? session.user.email ?? "不明";
-    let assigneeNameList = "未アサイン";
-    if (assignee_ids && assignee_ids.length > 0) {
-      const { data: assigneeUsers } = await supabase
-        .from("users")
-        .select("name, email")
-        .in("id", assignee_ids);
-      if (assigneeUsers && assigneeUsers.length > 0) {
-        assigneeNameList = assigneeUsers
-          .map((u) => u.name ?? u.email)
-          .join(", ");
+    const isSelfAssign =
+      assignee_ids &&
+      assignee_ids.length === 1 &&
+      assignee_ids[0] === session.user.id;
+
+    if (!isSelfAssign) {
+      const creatorName = session.user.name ?? session.user.email ?? "不明";
+      let assigneeNameList = "未アサイン";
+      if (assignee_ids && assignee_ids.length > 0) {
+        const { data: assigneeUsers } = await supabase
+          .from("users")
+          .select("name, email")
+          .in("id", assignee_ids);
+        if (assigneeUsers && assigneeUsers.length > 0) {
+          assigneeNameList = assigneeUsers
+            .map((u) => u.name ?? u.email)
+            .join(", ");
+        }
       }
+      notifyChat({
+        type: "task_created",
+        title: task.title,
+        creatorName,
+        assigneeNames: assigneeNameList,
+      }).catch(() => {});
     }
-    let dueDateStr: string | undefined;
-    if (task.due_date) {
-      const d = new Date(task.due_date);
-      dueDateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-    }
-    notifyChat({
-      type: "task_created",
-      title: task.title,
-      creatorName,
-      assigneeNames: assigneeNameList,
-      dueDate: dueDateStr,
-    }).catch(() => {});
   }
 
   // 担当者情報を含めて返す
