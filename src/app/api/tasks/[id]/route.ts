@@ -204,17 +204,16 @@ export async function PUT(
     }
 
     if (newColTitle === "完了") {
-      const completedByName = session.user.name ?? session.user.email ?? "不明";
       notifyChat({
         type: "task_completed",
         title: task.title,
-        completedByName,
+        assigneeNames: assigneeNameList,
       }).catch(() => {});
     } else {
       notifyChat({
         type: "status_changed",
         title: task.title,
-        oldColumn: oldColTitle,
+        assigneeNames: assigneeNameList,
         newColumn: newColTitle,
       }).catch(() => {});
     }
@@ -236,7 +235,7 @@ export async function DELETE(
 
   const { data: task } = await supabase
     .from("tasks")
-    .select("title, google_calendar_event_id")
+    .select("title, google_calendar_event_id, assignees:task_assignees(user_id, user:users(name, email))")
     .eq("id", id)
     .single();
 
@@ -244,12 +243,17 @@ export async function DELETE(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
+  const deleteAssigneeNames = (task.assignees as unknown as { user: { name: string | null; email: string } }[])
+    ?.map((a) => a.user?.name ?? a.user?.email)
+    .filter(Boolean)
+    .join(", ") || "未アサイン";
+
   // ※ Google カレンダーの予定はタスク削除時も残す（片方向同期）
 
   const { error } = await supabase.from("tasks").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  notifyChat({ type: "task_deleted", title: task.title }).catch(() => {});
+  notifyChat({ type: "task_deleted", title: task.title, assigneeNames: deleteAssigneeNames }).catch(() => {});
 
   return NextResponse.json({ success: true });
 }

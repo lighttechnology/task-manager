@@ -20,11 +20,11 @@ function buildMessage(params: NotifyParams): string {
     case "task_created":
       return `${params.creatorName ?? "不明"}が${params.assigneeNames ?? "未アサイン"}に${params.title}のタスクを追加しました。`;
     case "task_completed":
-      return `${params.completedByName ?? "不明"}が${params.title}を完了しました。`;
+      return `${params.assigneeNames ?? "不明"}の${params.title}のタスクを完了しました。`;
     case "status_changed":
-      return `🔄 ${params.title} が ${params.oldColumn} → ${params.newColumn} に移動しました`;
+      return `${params.assigneeNames ?? "不明"}の${params.title}のタスクが${params.newColumn}に移行されました`;
     case "task_deleted":
-      return `🗑️ ${params.title} が削除されました`;
+      return `🗑️ ${params.assigneeNames ?? "不明"}の${params.title}のタスクが削除されました`;
     case "task_due_today":
       return `${params.assigneeNames ?? "不明"}の${params.title}のタスクが本日までになります。`;
   }
