@@ -185,16 +185,30 @@ export async function PUT(
     const oldColTitle = existingCol?.title ?? "";
     const newColTitle = newCol?.title ?? "";
 
-    const assigneeNames = task.assignees
-      ?.map((a: { user: { name: string | null } }) => a.user?.name)
+    const assigneeNameList = task.assignees
+      ?.map((a: { user: { name: string | null; email: string } }) => a.user?.name ?? a.user?.email)
       .filter(Boolean)
-      .join(", ") ?? "未アサイン";
+      .join(", ") || "未アサイン";
+
+    // 依頼者名を取得
+    let creatorName = "不明";
+    if (existing.created_by) {
+      const { data: creatorUser } = await supabase
+        .from("users")
+        .select("name, email")
+        .eq("id", existing.created_by)
+        .single();
+      if (creatorUser) {
+        creatorName = creatorUser.name ?? creatorUser.email;
+      }
+    }
 
     if (newColTitle === "完了") {
       notifyChat({
         type: "task_completed",
         title: task.title,
-        assignee: assigneeNames,
+        creatorName,
+        assigneeNames: assigneeNameList,
       }).catch(() => {});
     } else {
       notifyChat({

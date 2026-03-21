@@ -43,18 +43,18 @@ export async function GET(req: NextRequest) {
   }
 
   // タスク取得: 段階的フォールバック
-  // Step 1: reviewer + assignees
+  // Step 1: reviewer + assignees + creator
   const r1 = await supabase
     .from("tasks")
     .select(
-      "*, assignees:task_assignees(user_id, user:users(id, email, name, avatar_url)), reviewer:users!reviewer_id(id, email, name, avatar_url)"
+      "*, assignees:task_assignees(user_id, user:users(id, email, name, avatar_url)), reviewer:users!reviewer_id(id, email, name, avatar_url), creator:users!created_by(id, name, avatar_url)"
     )
     .order("position");
 
   if (!r1.error) {
     return NextResponse.json(r1.data);
   }
-  console.log("Fallback 1 (reviewer join failed):", r1.error.message);
+  console.log("Fallback 1 (reviewer/creator join failed):", r1.error.message);
 
   // Step 2: assignees のみ
   const r2 = await supabase
@@ -187,8 +187,34 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Chat notification
-  notifyChat({ type: "task_created", title: task.title }).catch(() => {});
+  // Chat notification — 依頼者・担当者名を含める
+  {
+    const creatorName = session.user.name ?? session.user.email ?? "不明";
+    let assigneeNameList = "未アサイン";
+    if (assignee_ids && assignee_ids.length > 0) {
+      const { data: assigneeUsers } = await supabase
+        .from("users")
+        .select("name, email")
+        .in("id", assignee_ids);
+      if (assigneeUsers && assigneeUsers.length > 0) {
+        assigneeNameList = assigneeUsers
+          .map((u) => u.name ?? u.email)
+          .join(", ");
+      }
+    }
+    let dueDateStr: string | undefined;
+    if (task.due_date) {
+      const d = new Date(task.due_date);
+      dueDateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+    notifyChat({
+      type: "task_created",
+      title: task.title,
+      creatorName,
+      assigneeNames: assigneeNameList,
+      dueDate: dueDateStr,
+    }).catch(() => {});
+  }
 
   // 担当者情報を含めて返す
   const { data: fullTask } = await supabase

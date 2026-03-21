@@ -178,6 +178,19 @@ export function TaskModal({ open, onClose, task, columnId, columns }: TaskModalP
       <DialogContent className="max-w-[540px]">
         <DialogHeader>
           <DialogTitle>{task ? "タスク編集" : "新規タスク"}</DialogTitle>
+          {task?.creator && (
+            <div className="flex items-center gap-2 pt-1">
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={task.creator.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[10px]">
+                  {task.creator.name?.charAt(0) ?? "?"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-muted-foreground">
+                依頼者: {task.creator.name ?? "不明"}
+              </span>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="grid gap-4 py-2">

@@ -38,6 +38,7 @@ export interface Task {
   updated_at: string;
   assignees?: TaskAssignee[];
   reviewer?: User | null;
+  creator?: { id: string; name: string | null; avatar_url: string | null } | null;
   tags?: Tag[];
 }
 
