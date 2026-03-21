@@ -213,12 +213,28 @@ export async function PUT(
         operatorName,
       }).catch(() => {});
     } else {
+      // レビュー中の場合、レビュアー名を取得
+      let reviewerName: string | undefined;
+      if (newColTitle === "レビュー中") {
+        const revId = reviewer_id ?? task.reviewer_id;
+        if (revId) {
+          const { data: revUser } = await supabase
+            .from("users")
+            .select("name, email")
+            .eq("id", revId)
+            .single();
+          if (revUser) {
+            reviewerName = revUser.name ?? revUser.email;
+          }
+        }
+      }
       notifyChat({
         type: "status_changed",
         title: task.title,
         assigneeNames: assigneeNameList,
         operatorName,
         newColumn: newColTitle,
+        reviewerName,
       }).catch(() => {});
     }
   }

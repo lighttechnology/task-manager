@@ -13,6 +13,7 @@ interface NotifyParams {
   operatorName?: string;
   oldColumn?: string;
   newColumn?: string;
+  reviewerName?: string;
 }
 
 function buildMessage(params: NotifyParams): string {
@@ -24,8 +25,13 @@ function buildMessage(params: NotifyParams): string {
       return `📋 ${params.creatorName ?? "不明"}が${assignee}に${params.title}のタスクを追加しました。`;
     case "task_completed":
       return `✅ ${assignee}の${params.title}のタスクを${operator}が完了にしました。`;
-    case "status_changed":
-      return `🔄 ${assignee}の${params.title}のタスクが${operator}によって${params.newColumn}に移行されました。`;
+    case "status_changed": {
+      let msg = `🔄 ${assignee}の${params.title}のタスクが${operator}によって${params.newColumn}に移行されました。`;
+      if (params.newColumn === "レビュー中" && params.reviewerName) {
+        msg += `\nレビューは${params.reviewerName}に依頼されました。`;
+      }
+      return msg;
+    }
     case "task_deleted":
       return `🗑️ ${assignee}の${params.title}のタスクが${operator}によって削除されました。`;
     case "task_due_today":
